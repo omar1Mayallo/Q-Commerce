@@ -1,8 +1,8 @@
 "use client";
+
 import CountBadge from "@/shared/components/Badge/CountBadge.component";
 import Logo from "@/shared/components/Image/Logo.component";
 import NavLink from "@/shared/components/Link/Navlink.component";
-
 import {
   Navbar,
   NavbarContent,
@@ -33,6 +33,9 @@ import { MdEmail, MdLock } from "react-icons/md";
 import CartDrawer from "./CartDrawer.component";
 import ConfirmModal from "@/shared/components/Modal/ConfirmModal.component";
 import SearchModal from "./SearchModal.component";
+import { useParams } from "next/navigation";
+import { LangsE } from "@/shared/types/common.types";
+import LanguageSwitcherButton from "./LangButton.component";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
@@ -51,6 +54,9 @@ export default function Header() {
 
   const toggleCartDrawer = () => setIsCartOpen(!isCartOpen);
   const toggleSearchModal = () => setIsSearchOpen(!isSearchOpen);
+
+  const params = useParams();
+  const lang = params.lang || LangsE.EN;
 
   return (
     <>
@@ -72,20 +78,21 @@ export default function Header() {
 
         <NavbarContent className="hidden sm:flex gap-5" justify="center">
           <NavbarItem className="text-foreground-600">
-            <NavLink name="Shop" url="/shop" />
+            <NavLink name="Shop" url={`/${lang}/shop`} />
           </NavbarItem>
           <NavbarItem className="text-foreground-600">
-            <NavLink name="About" url="/about" />
+            <NavLink name="About" url={`/${lang}/about`} />
           </NavbarItem>
           <NavbarItem className="text-foreground-600">
-            <NavLink name="Blogs" url="/blogs" />
+            <NavLink name="Blogs" url={`/${lang}/blogs`} />
           </NavbarItem>
           <NavbarItem className="text-foreground-600">
-            <NavLink name="Contact" url="/contact" />
+            <NavLink name="Contact" url={`/${lang}/contact`} />
           </NavbarItem>
         </NavbarContent>
 
         <NavbarContent justify="end" className="gap-6 items-center">
+          <LanguageSwitcherButton />
           <NavbarItem
             className="text-foreground-600"
             onClick={toggleSearchModal}
@@ -118,10 +125,14 @@ export default function Header() {
                 />
               </DropdownTrigger>
               <DropdownMenu aria-label="Profile Actions" variant="flat">
-                <DropdownItem as={Link} href="/profile" key="profile">
+                <DropdownItem as={Link} href={`/${lang}/profile`} key="profile">
                   Profile
                 </DropdownItem>
-                <DropdownItem as={Link} href="/dashboard" key="dashboard">
+                <DropdownItem
+                  as={Link}
+                  href={`/${lang}/dashboard`}
+                  key="dashboard"
+                >
                   Dashboard
                 </DropdownItem>
                 <DropdownItem
@@ -138,16 +149,16 @@ export default function Header() {
 
         <NavbarMenu>
           <NavbarMenuItem>
-            <NavLink name="Shop" url="/shop" />
+            <NavLink name="Shop" url={`/${lang}/shop`} />
           </NavbarMenuItem>
           <NavbarMenuItem>
-            <NavLink name="About" url="/about" />
+            <NavLink name="About" url={`/${lang}/about`} />
           </NavbarMenuItem>
           <NavbarMenuItem>
-            <NavLink name="Blogs" url="/blogs" />
+            <NavLink name="Blogs" url={`/${lang}/blogs`} />
           </NavbarMenuItem>
           <NavbarMenuItem>
-            <NavLink name="Contact" url="/contact" />
+            <NavLink name="Contact" url={`/${lang}/contact`} />
           </NavbarMenuItem>
         </NavbarMenu>
       </Navbar>

@@ -36,7 +36,7 @@ export class EnvironmentVariables implements IEnvironmentVariables {
   @IsString()
   DB_PASSWORD: string;
   @IsString()
-  DB_DATABASE: string;
+  DB_NAME: string;
 
   // #JWT
   @IsString()

@@ -9,7 +9,7 @@ export interface IEnvironmentVariables {
   DB_PORT: number;
   DB_USER: string;
   DB_PASSWORD: string;
-  DB_DATABASE: string;
+  DB_NAME: string;
   JWT_SECRET: string;
   JWT_EXPIRATION_DATE: string;
 }
