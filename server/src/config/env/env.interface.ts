@@ -12,4 +12,5 @@ export interface IEnvironmentVariables {
   DB_NAME: string;
   JWT_SECRET: string;
   JWT_EXPIRATION_DATE: string;
+  FALLBACK_LANGUAGE: string;
 }

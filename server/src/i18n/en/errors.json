@@ -1,0 +1,21 @@
+{
+  "Validation_Errors": {
+    "REQUIRED": "{property} is required",
+    "INVALID_EMAIL": "Invalid Email Format",
+    "PASSWORD_REGEX": "Password must be between 8 and 20 characters.",
+    "INVALID_ROLE": "Invalid User Role",
+    "USERNAME_REGEX": "Username must be 3 to 30 characters long and can only contain letters, numbers, and underscores.",
+    "ARRAY_POSITIVE": "Must be an array and contain positive numbers"
+  },
+
+  "Http_Errors": {
+    "INVALID_CREDENTIALS": "Invalid login credentials. Please try again",
+    "EMAIL_UNIQUE": "Email already exists"
+  },
+
+  "Database_Errors": {},
+
+  "Other_Errors": {
+    "SOMETHING_WENT_WRONG": "Something went wrong"
+  }
+}

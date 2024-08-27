@@ -1,5 +1,6 @@
 import { Knex } from 'knex';
-import { TABLES } from '../../shared/constants/Tables';
+import { TABLES } from '../../shared/constants/tables.constants';
+import { UserRolesE } from '../../core/users-management/common/constants';
 
 export async function up(knex: Knex): Promise<void> {
   // Create Users Table
@@ -8,7 +9,7 @@ export async function up(knex: Knex): Promise<void> {
     table.string('username').notNullable();
     table.string('email').unique().notNullable();
     table.string('password').notNullable();
-    table.string('role').notNullable().defaultTo('customer');
+    table.string('role').notNullable().defaultTo(UserRolesE.USER);
     table.string('avatar').nullable();
     table.timestamps(true, true);
   });

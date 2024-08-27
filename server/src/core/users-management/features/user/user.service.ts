@@ -1,101 +1,152 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { Knex } from 'knex';
 import { KNEX_CONNECTION } from 'src/database/database.provider';
+import { I18nCustomService } from 'src/shared/modules/i18n/i18n.service';
+import { RepositoryService } from 'src/shared/modules/repository/repository.service';
+import { BcryptService } from '../../common/modules/bcrypt/bcrypt.service';
+import { UserModel } from './user.type';
+import { TABLES } from 'src/shared/constants/tables.constants';
+import {
+  UpdateLoggedUserPasswordDTO,
+  CreateUserDTO,
+  GetAllUsersDTO,
+  UpdateUserDTO,
+  UpdateLoggedUserProfileDTO,
+} from './user.dto';
 
 @Injectable()
 export class UserService {
   constructor(
     @Inject(KNEX_CONNECTION)
     private readonly knex: Knex,
+    private readonly repoService: RepositoryService<UserModel>,
+    private readonly bcryptService: BcryptService,
+    private readonly i18nService: I18nCustomService,
   ) {}
 
-  // async createUser(body: CreateUserDTO) {
-  //   if (body.role === USER_ROLE.OWNER) {
-  //     throw new BadRequestException(
-  //       this.i18nService.t('errors.Http_Errors.CANT_CREATE_OWNER_USER'),
-  //     );
-  //   }
+  async createUser(body: CreateUserDTO) {
+    // 1) Check If Email already exists
+    const emailExist = await this.repoService.getOne(
+      TABLES.USERS,
+      {
+        email: body.email,
+      },
+      { withNotFoundError: false },
+    );
+    if (emailExist) {
+      throw new BadRequestException(
+        this.i18nService.t('errors.Http_Errors.EMAIL_UNIQUE'),
+      );
+    }
 
-  //   // 1) Check If Email already exists
-  //   const emailExist = await this.repoService.getOne(
-  //     TABLES.USERS,
-  //     {
-  //       email: body.email,
-  //     },
-  //     { withNotFoundError: false },
-  //   );
-  //   if (emailExist) {
-  //     throw new BadRequestException(
-  //       this.i18nService.t('errors.Http_Errors.EMAIL_UNIQUE'),
-  //     );
-  //   }
+    // 2) Hash the password before Inserting
+    const hashedPassword = await this.bcryptService.hash(body.password);
 
-  //   // 2) Hash the password before Inserting
-  //   const hashedPassword = await this.bcryptService.hash(body.password);
+    return await this.knex.transaction(async (trx) => {
+      // 3) Create a new user
+      const newUser = { ...body, password: hashedPassword };
+      const [createdUser] = await trx<UserModel>(TABLES.USERS)
+        .insert(newUser)
+        .returning('*');
 
-  //   return await this.knex.transaction(async (trx) => {
-  //     // 3) Create a new user
-  //     const newUser = { ...body, password: hashedPassword };
-  //     const [createdUser] = await trx<UserModel>(TABLES.USERS)
-  //       .insert(newUser)
-  //       .returning('*');
+      return createdUser;
+    });
+  }
 
-  //     // 4) Create a new user_actions
-  //     const userActions = this.getUserActionsByUserRole(createdUser.role);
-  //     const newUserActions = userActions.map((action) => ({
-  //       email: createdUser.email,
-  //       action_key: action,
-  //     }));
+  async updateUser(id: number, body: UpdateUserDTO) {
+    // 1) Check if the user exists
+    const user = await this.repoService.getOne(TABLES.USERS, { id });
 
-  //     if (newUserActions.length > 0) {
-  //       await trx(TABLES.USER_ENTITY_ACTION).insert(newUserActions);
-  //     }
+    // 2) If the email is being updated, check for email uniqueness
+    if (body.email && body.email !== user.email) {
+      const emailExist = await this.repoService.getOne(
+        TABLES.USERS,
+        { email: body.email },
+        { withNotFoundError: false },
+      );
+      if (emailExist) {
+        throw new BadRequestException(
+          this.i18nService.t('errors.Http_Errors.EMAIL_UNIQUE'),
+        );
+      }
+    }
 
-  //     return createdUser;
-  //   });
-  // }
+    // 3) If the password is being updated, Hash the password
+    if (body.password) {
+      body.password = await this.bcryptService.hash(body.password);
+    }
 
-  // async getAllUsers(query: GetAllUsersDTO) {
-  //   return await this.repoService.getAll(TABLES.USERS, query);
-  // }
+    // 4) Perform the update
+    return await this.repoService.updateOne(TABLES.USERS, { id }, body);
+  }
 
-  // async getUser(id: number) {
-  //   const user = await this.repoService.getOne(TABLES.USERS, { id });
-  //   delete user.password;
-  //   return user;
-  // }
+  async getAllUsers(query: GetAllUsersDTO) {
+    return await this.repoService.getAll(TABLES.USERS, query);
+  }
 
-  // async deleteUsers(ids: number[]) {
-  //   const usersRoles = await this.knex<UserModel>(TABLES.USERS)
-  //     .whereIn('id', ids)
-  //     .select('role')
-  //     .pluck('role');
+  async getUser(id: number) {
+    const user = await this.repoService.getOne(TABLES.USERS, { id });
+    delete user.password;
+    return user;
+  }
 
-  //   if (usersRoles.includes(USER_ROLE.OWNER)) {
-  //     throw new BadRequestException(
-  //       this.i18nService.t('errors.Http_Errors.CANT_DELETE_OWNER'),
-  //     );
-  //   }
+  async deleteUsers(ids: number[]) {
+    await this.repoService.deleteByIds(TABLES.USERS, ids);
+    return { message: 'success' };
+  }
 
-  //   await this.repoService.deleteByIds(TABLES.USERS, ids);
+  async updateLoggedUserProfile(id: number, body: UpdateLoggedUserProfileDTO) {
+    // 1) Check if the user exists
+    const user = await this.repoService.getOne(TABLES.USERS, { id });
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
 
-  //   return { message: 'success' };
-  // }
+    // 2) If the email is being updated, check for email uniqueness
+    if (body.email && body.email !== user.email) {
+      const emailExist = await this.repoService.getOne(
+        TABLES.USERS,
+        { email: body.email },
+        { withNotFoundError: false },
+      );
+      if (emailExist) {
+        throw new BadRequestException(
+          this.i18nService.t('errors.Http_Errors.EMAIL_UNIQUE'),
+        );
+      }
+    }
 
-  // async updatedUser(id: number, body: UpdateUserDTO) {
-  //   const user = await this.getUser(id);
+    // 3) Perform the update
+    return await this.repoService.updateOne(TABLES.USERS, { id }, body);
+  }
 
-  //   if (user.role !== body.role) {
-  //     throw new BadRequestException(
-  //       this.i18nService.t('errors.Http_Errors.CANT_UPDATE_USER_ROLE'),
-  //     );
-  //   }
+  async updateLoggedUserPassword(
+    id: number,
+    body: UpdateLoggedUserPasswordDTO,
+  ) {
+    // 1) Check if the user exists
+    const user = await this.repoService.getOne(TABLES.USERS, { id });
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
 
-  //   if (body.password) {
-  //     const hashedPassword = await this.bcryptService.hash(body.password);
-  //     body.password = hashedPassword;
-  //   }
+    // 2) Verify the current password
+    const isPasswordValid = await this.bcryptService.compare(
+      body.currentPassword,
+      user.password,
+    );
+    if (!isPasswordValid) {
+      throw new BadRequestException('Current password is incorrect');
+    }
 
-  //   return await this.repoService.updateOne(TABLES.USERS, { id }, body);
-  // }
+    // 3) Hash the new password
+    const hashedNewPassword = await this.bcryptService.hash(body.newPassword);
+
+    // 4) Perform the update
+    return await this.repoService.updateOne(
+      TABLES.USERS,
+      { id },
+      { password: hashedNewPassword },
+    );
+  }
 }

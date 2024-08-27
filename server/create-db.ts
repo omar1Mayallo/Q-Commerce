@@ -15,6 +15,14 @@ const createDatabase = async () => {
     await client.connect();
     const dbName = process.env.DB_NAME;
 
+    // Terminate all connections to the database
+    await client.query(
+      `SELECT pg_terminate_backend(pid) 
+                        FROM pg_stat_activity 
+                        WHERE datname = $1 AND pid <> pg_backend_pid();`,
+      [dbName],
+    );
+
     // Drop the database if it exists
     await client.query(`DROP DATABASE IF EXISTS ${dbName}`);
 

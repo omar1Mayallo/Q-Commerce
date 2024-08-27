@@ -25,6 +25,8 @@ export class EnvironmentVariables implements IEnvironmentVariables {
     require_tld: false,
   })
   SERVER_URL: string;
+  @IsString()
+  FALLBACK_LANGUAGE: string = 'en';
 
   // #DB
   @IsString()
