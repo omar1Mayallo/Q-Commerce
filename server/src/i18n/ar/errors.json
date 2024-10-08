@@ -1,0 +1,21 @@
+{
+  "Validation_Errors": {
+    "REQUIRED": "{property} مطلوب",
+    "INVALID_EMAIL": "تنسيق البريد الإلكتروني غير صالح",
+    "PASSWORD_REGEX": "يجب أن تكون كلمة المرور بين 8 و 20 حرفًا.",
+    "INVALID_ROLE": "دور المستخدم غير صالح",
+    "USERNAME_REGEX": "يجب أن يكون اسم المستخدم بين 3 و 30 حرفًا ويمكن أن يحتوي فقط على أحرف وأرقام وشرطات سفلية.",
+    "ARRAY_POSITIVE": "يجب أن تكون مصفوفة وتحتوي على أرقام موجبة"
+  },
+
+  "Http_Errors": {
+    "INVALID_CREDENTIALS": "بيانات تسجيل الدخول غير صحيحة، حاول مرة أخرى",
+    "EMAIL_UNIQUE": "البريد الإلكتروني موجود بالفعل"
+  },
+
+  "Database_Errors": {},
+
+  "Other_Errors": {
+    "SOMETHING_WENT_WRONG": "حدث خطأ ما"
+  }
+}

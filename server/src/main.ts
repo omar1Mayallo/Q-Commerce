@@ -6,6 +6,9 @@ import * as compression from 'compression';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { EnvironmentVariables } from './config/env/env.schema';
+import { I18nValidationPipe } from 'nestjs-i18n';
+import { CustomI18nValidationExceptionFilter } from './config/errors/custom-i18n-exception-filter';
+import { i18nExceptionFilterOptions } from './config/errors/i18nExceptionFilterOptions';
 
 (async () => {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -15,16 +18,16 @@ import { EnvironmentVariables } from './config/env/env.schema';
   app.use(compression());
 
   // ____________ VALIDATION_PIPES ____________ //
-  // app.useGlobalPipes(
-  //   new I18nValidationPipe({
-  //     transform: true,
-  //     whitelist: true,
-  //     forbidNonWhitelisted: true,
-  //   }),
-  // );
-  // app.useGlobalFilters(
-  //   new CustomI18nValidationExceptionFilter(i18nExceptionFilterOptions),
-  // );
+  app.useGlobalPipes(
+    new I18nValidationPipe({
+      transform: true,
+      whitelist: true,
+      forbidNonWhitelisted: true,
+    }),
+  );
+  app.useGlobalFilters(
+    new CustomI18nValidationExceptionFilter(i18nExceptionFilterOptions),
+  );
 
   // ____________ START_APP ____________ //
   const configService = app.get(ConfigService<EnvironmentVariables>);
