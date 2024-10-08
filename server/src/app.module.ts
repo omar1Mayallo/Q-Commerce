@@ -8,6 +8,7 @@ import { I18nCustomModule } from './shared/modules/i18n/i18n.module';
 import { UserModule } from './core/users-management/features/user/user.module';
 import { AuthModule } from './core/users-management/features/auth/auth.module';
 import { AddressModule } from './core/users-management/features/address/address.module';
+import { PhoneNumberModule } from './core/users-management/features/phone-number/phone.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { AddressModule } from './core/users-management/features/address/address.
     UserModule,
     AuthModule,
     AddressModule,
+    PhoneNumberModule,
   ],
 })
 export class AppModule {}

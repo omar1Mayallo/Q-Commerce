@@ -1,16 +1,22 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { RepositoryService } from 'src/shared/modules/repository/repository.service';
-import { AddressModel } from '../address.type';
 import { TABLES } from 'src/shared/constants/tables.constants';
+import { KNEX_CONNECTION } from 'src/database/database.provider';
+import { Knex } from 'knex';
+import { AddressModel } from './address.type';
 import {
   CreateAddressDTO,
   GetAllAddressesDTO,
   UpdateAddressDTO,
-} from '../address.dto';
+} from './address.dto';
 
 @Injectable()
-export class UserAddressService {
-  constructor(private readonly repoService: RepositoryService<AddressModel>) {}
+export class AddressService {
+  constructor(
+    private readonly repoService: RepositoryService<AddressModel>,
+    @Inject(KNEX_CONNECTION)
+    private readonly knex: Knex,
+  ) {}
 
   async createAddress(userId: number, body: CreateAddressDTO) {
     const newAddress = { ...body, user_id: userId };
@@ -52,15 +58,20 @@ export class UserAddressService {
     );
   }
 
-  async deleteAddress(userId: number, addressId: number) {
-    const address = await this.repoService.getOne(TABLES.ADDRESSES, {
-      id: addressId,
-      user_id: userId,
-    });
-    if (!address) {
-      throw new BadRequestException('This address do not belong to the user');
+  async deleteAddress(userId: number, ids: number[]) {
+    const addressIds = await this.knex<AddressModel>(TABLES.ADDRESSES)
+      .whereIn('id', ids)
+      .andWhere('user_id', userId)
+      .pluck('id');
+
+    const allBelongToUser = ids.every((id) => addressIds.includes(id));
+
+    if (!allBelongToUser) {
+      throw new BadRequestException(
+        'Addresses not found or not belongs to your account',
+      );
     }
 
-    return await this.repoService.deleteByIds(TABLES.ADDRESSES, [addressId]);
+    return await this.repoService.deleteByIds(TABLES.ADDRESSES, ids);
   }
 }

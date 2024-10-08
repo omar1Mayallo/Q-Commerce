@@ -41,21 +41,6 @@ export class UserController {
     return await this.userService.getAllUsers(query);
   }
 
-  @Get('/:id')
-  @AllowedTo(UserRolesE.ADMIN)
-  async getUser(@Param() param: IsValidParamIdDTO) {
-    return await this.userService.getUser(param.id);
-  }
-
-  @Put('/:id')
-  @AllowedTo(UserRolesE.ADMIN)
-  async updateUser(
-    @Param() param: IsValidParamIdDTO,
-    @Body() body: UpdateUserDTO,
-  ) {
-    return await this.userService.updateUser(param.id, body);
-  }
-
   @Delete()
   @AllowedTo(UserRolesE.ADMIN)
   async deleteUsers(@Body() body: IsValidArrayIdsDTO) {
@@ -81,5 +66,20 @@ export class UserController {
     @Body() body: UpdateLoggedUserPasswordDTO,
   ) {
     return await this.userService.updateLoggedUserPassword(user.id, body);
+  }
+
+  @Get('/:id')
+  @AllowedTo(UserRolesE.ADMIN)
+  async getUser(@Param() param: IsValidParamIdDTO) {
+    return await this.userService.getUser(param.id);
+  }
+
+  @Put('/:id')
+  @AllowedTo(UserRolesE.ADMIN)
+  async updateUser(
+    @Param() param: IsValidParamIdDTO,
+    @Body() body: UpdateUserDTO,
+  ) {
+    return await this.userService.updateUser(param.id, body);
   }
 }

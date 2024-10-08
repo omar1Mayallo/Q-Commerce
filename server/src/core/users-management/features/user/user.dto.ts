@@ -96,10 +96,10 @@ export class UpdateLoggedUserProfileDTO {
 
 export class UpdateLoggedUserPasswordDTO {
   @IsString()
-  @Length(8, 50)
+  @Length(6, 50)
   currentPassword: string;
 
   @IsString()
-  @Length(8, 50)
+  @Length(6, 50)
   newPassword: string;
 }

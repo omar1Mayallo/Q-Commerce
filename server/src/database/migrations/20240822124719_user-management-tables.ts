@@ -1,6 +1,7 @@
 import { Knex } from 'knex';
 import { TABLES } from '../../shared/constants/tables.constants';
 import { UserRolesE } from '../../core/users-management/common/constants';
+import { PhoneType } from 'src/core/users-management/features/phone-number/phone.type';
 
 export async function up(knex: Knex): Promise<void> {
   // Create Users Table
@@ -43,7 +44,7 @@ export async function up(knex: Knex): Promise<void> {
       .onUpdate('CASCADE');
     table.string('phone_number').notNullable();
     table.string('country_code').notNullable();
-    table.string('type').notNullable().defaultTo('SMS'); // Type of phone number (e.g., 'WhatsApp', 'SMS')
+    table.string('type').notNullable().defaultTo(PhoneType.SMS); // Type of phone number (e.g., 'WhatsApp', 'SMS')
     table.boolean('marketing_opt_in').defaultTo(false); // Opt-in for marketing communications
     table.timestamps(true, true);
   });
