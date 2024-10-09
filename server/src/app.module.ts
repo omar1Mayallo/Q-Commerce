@@ -9,6 +9,7 @@ import { UserModule } from './core/users-management/features/user/user.module';
 import { AuthModule } from './core/users-management/features/auth/auth.module';
 import { AddressModule } from './core/users-management/features/address/address.module';
 import { PhoneNumberModule } from './core/users-management/features/phone-number/phone.module';
+import { CategoriesModule } from './core/products-management/features/categories/categories.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { PhoneNumberModule } from './core/users-management/features/phone-number
     AuthModule,
     AddressModule,
     PhoneNumberModule,
+    CategoriesModule,
   ],
 })
 export class AppModule {}

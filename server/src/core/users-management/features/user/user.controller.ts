@@ -68,13 +68,13 @@ export class UserController {
     return await this.userService.updateLoggedUserPassword(user.id, body);
   }
 
-  @Get('/:id')
+  @Get(':id')
   @AllowedTo(UserRolesE.ADMIN)
   async getUser(@Param() param: IsValidParamIdDTO) {
     return await this.userService.getUser(param.id);
   }
 
-  @Put('/:id')
+  @Put(':id')
   @AllowedTo(UserRolesE.ADMIN)
   async updateUser(
     @Param() param: IsValidParamIdDTO,
