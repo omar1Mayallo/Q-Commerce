@@ -16,8 +16,6 @@ export class CategoriesService {
   ) {}
 
   async createCategory(body: CreateCategoryDTO) {
-    console.log(body);
-
     if (body.parent_category_id) {
       const parentCategory = await this.repoService.getOne(TABLES.CATEGORIES, {
         id: body.parent_category_id,

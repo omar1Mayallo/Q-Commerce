@@ -10,6 +10,7 @@ import { AuthModule } from './core/users-management/features/auth/auth.module';
 import { AddressModule } from './core/users-management/features/address/address.module';
 import { PhoneNumberModule } from './core/users-management/features/phone-number/phone.module';
 import { CategoriesModule } from './core/products-management/features/categories/categories.module';
+import { AttributesModule } from './core/products-management/features/attributes/attributes.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { CategoriesModule } from './core/products-management/features/categories
     AddressModule,
     PhoneNumberModule,
     CategoriesModule,
+    AttributesModule,
   ],
 })
 export class AppModule {}
