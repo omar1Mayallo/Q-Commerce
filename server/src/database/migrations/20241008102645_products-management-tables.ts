@@ -4,8 +4,10 @@ import { TABLES } from '../../shared/constants/tables.constants';
 export async function up(knex: Knex): Promise<void> {
   // Create Countries Table
   await knex.schema.createTable(TABLES.COUNTRIES, (table) => {
-    table.string('country_code').primary();
+    table.increments('id').primary();
+    table.string('country_code').unique().notNullable();
     table.string('country_name').notNullable();
+    table.timestamps(true, true);
   });
 
   // Create Categories Table
@@ -20,6 +22,7 @@ export async function up(knex: Knex): Promise<void> {
     table.string('category_name').notNullable();
     table.string('category_description').nullable();
     table.string('category_img').nullable();
+    table.timestamps(true, true);
   });
 
   // Create Products Table
@@ -37,15 +40,17 @@ export async function up(knex: Knex): Promise<void> {
     table.integer('base_quantity').notNullable();
     table.decimal('base_tax_rate', 5, 2).notNullable();
     table.decimal('base_tax_amount', 10, 2).notNullable();
+    table.timestamps(true, true);
   });
 
-  // Create Attributes Table (needed for CombinationAttributes table)
+  // Create Attributes Table
   await knex.schema.createTable(TABLES.ATTRIBUTES, (table) => {
     table.increments('id').primary();
     table.string('attribute_name').notNullable();
+    table.timestamps(true, true);
   });
 
-  // Create AttributeOptions Table (needed for CombinationAttributes table)
+  // Create AttributeOptions Table
   await knex.schema.createTable(TABLES.ATTRIBUTE_OPTIONS, (table) => {
     table.increments('id').primary();
     table
@@ -55,6 +60,7 @@ export async function up(knex: Knex): Promise<void> {
       .inTable(TABLES.ATTRIBUTES)
       .onDelete('CASCADE');
     table.string('option_name').notNullable();
+    table.timestamps(true, true);
   });
 
   // Create Combinations Table
@@ -66,9 +72,10 @@ export async function up(knex: Knex): Promise<void> {
       .references('id')
       .inTable(TABLES.PRODUCTS)
       .onDelete('CASCADE');
+    table.timestamps(true, true);
   });
 
-  // Create CombinationAttributes Table (depends on Combinations, Attributes, and AttributeOptions tables)
+  // Create CombinationAttributes Table
   await knex.schema.createTable(TABLES.COMBINATION_ATTRIBUTES, (table) => {
     table.increments('id').primary();
     table
@@ -89,6 +96,7 @@ export async function up(knex: Knex): Promise<void> {
       .references('id')
       .inTable(TABLES.ATTRIBUTE_OPTIONS)
       .onDelete('CASCADE');
+    table.timestamps(true, true);
   });
 
   // Create ProductImages Table
@@ -103,16 +111,17 @@ export async function up(knex: Knex): Promise<void> {
     table.string('img_url').notNullable();
     table.string('img_type').nullable();
     table.integer('img_order').nullable();
+    table.timestamps(true, true);
   });
 
   // Create ProductRegionalData Table
   await knex.schema.createTable(TABLES.PRODUCT_REGIONAL_DATA, (table) => {
     table.increments('id').primary();
     table
-      .integer('combination_id')
+      .integer('combination_attributes_id')
       .unsigned()
       .references('id')
-      .inTable(TABLES.COMBINATIONS)
+      .inTable(TABLES.COMBINATION_ATTRIBUTES)
       .onDelete('CASCADE');
     table
       .string('country_code')
@@ -123,6 +132,7 @@ export async function up(knex: Knex): Promise<void> {
     table.decimal('tax_rate', 5, 2).notNullable();
     table.decimal('tax_amount', 10, 2).notNullable();
     table.integer('quantity').notNullable();
+    table.timestamps(true, true);
   });
 }
 

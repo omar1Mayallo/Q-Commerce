@@ -11,6 +11,7 @@ import { AddressModule } from './core/users-management/features/address/address.
 import { PhoneNumberModule } from './core/users-management/features/phone-number/phone.module';
 import { CategoriesModule } from './core/products-management/features/categories/categories.module';
 import { AttributesModule } from './core/products-management/features/attributes/attributes.module';
+import { CountriesModule } from './core/products-management/features/countries/countries.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { AttributesModule } from './core/products-management/features/attributes
     PhoneNumberModule,
     CategoriesModule,
     AttributesModule,
+    CountriesModule,
   ],
 })
 export class AppModule {}

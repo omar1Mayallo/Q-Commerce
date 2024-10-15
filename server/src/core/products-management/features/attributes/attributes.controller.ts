@@ -43,8 +43,15 @@ export class AttributesController {
   @Delete()
   @UseGuards(AuthGuard)
   @AllowedTo(UserRolesE.ADMIN)
-  async deleteCategory(@Body() body: IsValidArrayIdsDTO) {
+  async deleteAttributes(@Body() body: IsValidArrayIdsDTO) {
     await this.attributesService.deleteAttributes(body.ids);
+  }
+
+  @Delete('/options')
+  @UseGuards(AuthGuard)
+  @AllowedTo(UserRolesE.ADMIN)
+  async deleteAttributeOptions(@Body() body: IsValidArrayIdsDTO) {
+    await this.attributesService.deleteAttributeOptions(body.ids);
   }
 
   @Get(':id/options')

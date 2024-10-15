@@ -55,4 +55,11 @@ export class AttributesService {
   async deleteAttributes(ids: number[]) {
     return await this.attributeRepoService.deleteByIds(TABLES.ATTRIBUTES, ids);
   }
+
+  async deleteAttributeOptions(ids: number[]) {
+    return await this.optionRepoService.deleteByIds(
+      TABLES.ATTRIBUTE_OPTIONS,
+      ids,
+    );
+  }
 }
