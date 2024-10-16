@@ -12,6 +12,7 @@ import { PhoneNumberModule } from './core/users-management/features/phone-number
 import { CategoriesModule } from './core/products-management/features/categories/categories.module';
 import { AttributesModule } from './core/products-management/features/attributes/attributes.module';
 import { CountriesModule } from './core/products-management/features/countries/countries.module';
+import { CurrenciesModule } from './core/products-management/features/currencies/currencies.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { CountriesModule } from './core/products-management/features/countries/c
     CategoriesModule,
     AttributesModule,
     CountriesModule,
+    CurrenciesModule,
   ],
 })
 export class AppModule {}

@@ -10,6 +10,15 @@ export async function up(knex: Knex): Promise<void> {
     table.timestamps(true, true);
   });
 
+  // Create Currencies Table
+  await knex.schema.createTable(TABLES.CURRENCIES, (table) => {
+    table.increments('id').primary();
+    table.string('currency_code').unique().notNullable();
+    table.string('currency_name').notNullable();
+    table.decimal('exchange_rate', 10, 4).notNullable(); // Exchange rate relative to a base currency, like USD
+    table.timestamps(true, true);
+  });
+
   // Create Categories Table
   await knex.schema.createTable(TABLES.CATEGORIES, (table) => {
     table.increments('id').primary();
@@ -128,6 +137,12 @@ export async function up(knex: Knex): Promise<void> {
       .references('country_code')
       .inTable(TABLES.COUNTRIES)
       .onDelete('CASCADE');
+    table
+      .integer('currency_id')
+      .unsigned()
+      .references('id')
+      .inTable(TABLES.CURRENCIES)
+      .onDelete('CASCADE');
     table.decimal('price', 10, 2).notNullable();
     table.decimal('tax_rate', 5, 2).notNullable();
     table.decimal('tax_amount', 10, 2).notNullable();
@@ -145,5 +160,6 @@ export async function down(knex: Knex): Promise<void> {
   await knex.schema.dropTableIfExists(TABLES.ATTRIBUTES);
   await knex.schema.dropTableIfExists(TABLES.PRODUCTS);
   await knex.schema.dropTableIfExists(TABLES.CATEGORIES);
+  await knex.schema.dropTableIfExists(TABLES.CURRENCIES);
   await knex.schema.dropTableIfExists(TABLES.COUNTRIES);
 }

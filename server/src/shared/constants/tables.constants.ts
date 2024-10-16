@@ -6,6 +6,7 @@ export const TABLES = {
   PHONE_NUMBERS: 'PhoneNumbers',
 
   COUNTRIES: 'Countries',
+  CURRENCIES: 'Currencies',
   CATEGORIES: 'Categories',
   PRODUCTS: 'Products',
   COMBINATIONS: 'Combinations',
