@@ -8,12 +8,12 @@ export const TABLES = {
   COUNTRIES: 'Countries',
   CURRENCIES: 'Currencies',
   CATEGORIES: 'Categories',
-  PRODUCTS: 'Products',
-  COMBINATIONS: 'Combinations',
-  COMBINATION_ATTRIBUTES: 'CombinationAttributes',
-  PRODUCT_IMAGES: 'ProductImages',
   ATTRIBUTES: 'Attributes',
   ATTRIBUTE_OPTIONS: 'AttributeOptions',
+  PRODUCTS: 'Products',
+  PRODUCT_VARIANT_ATTRIBUTES: 'ProductVariantAttributes',
+  PRODUCT_VARIANTS: 'ProductVariants',
+  PRODUCT_IMAGES: 'ProductImages',
   PRODUCT_REGIONAL_DATA: 'ProductRegionalData',
 } as const;
 

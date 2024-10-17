@@ -38,7 +38,7 @@ export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable(TABLES.PRODUCTS, (table) => {
     table.increments('id').primary();
     table
-      .integer('subcategory_id')
+      .integer('category_id')
       .unsigned()
       .references('id')
       .inTable(TABLES.CATEGORIES)
@@ -72,8 +72,8 @@ export async function up(knex: Knex): Promise<void> {
     table.timestamps(true, true);
   });
 
-  // Create Combinations Table
-  await knex.schema.createTable(TABLES.COMBINATIONS, (table) => {
+  // Create Product Variants Table
+  await knex.schema.createTable(TABLES.PRODUCT_VARIANTS, (table) => {
     table.increments('id').primary();
     table
       .integer('product_id')
@@ -81,17 +81,19 @@ export async function up(knex: Knex): Promise<void> {
       .references('id')
       .inTable(TABLES.PRODUCTS)
       .onDelete('CASCADE');
+    table.string('sku').unique().notNullable();
+    table.string('unique_variant_name').notNullable(); // Combination of attribute names
     table.timestamps(true, true);
   });
 
-  // Create CombinationAttributes Table
-  await knex.schema.createTable(TABLES.COMBINATION_ATTRIBUTES, (table) => {
+  // Create Product Variant Attributes Table
+  await knex.schema.createTable(TABLES.PRODUCT_VARIANT_ATTRIBUTES, (table) => {
     table.increments('id').primary();
     table
-      .integer('combination_id')
+      .integer('product_variant_id')
       .unsigned()
       .references('id')
-      .inTable(TABLES.COMBINATIONS)
+      .inTable(TABLES.PRODUCT_VARIANTS)
       .onDelete('CASCADE');
     table
       .integer('attribute_id')
@@ -100,7 +102,7 @@ export async function up(knex: Knex): Promise<void> {
       .inTable(TABLES.ATTRIBUTES)
       .onDelete('CASCADE');
     table
-      .integer('attribute_value_id')
+      .integer('attribute_option_id')
       .unsigned()
       .references('id')
       .inTable(TABLES.ATTRIBUTE_OPTIONS)
@@ -108,7 +110,33 @@ export async function up(knex: Knex): Promise<void> {
     table.timestamps(true, true);
   });
 
-  // Create ProductImages Table
+  // Create Product Regional Data Table
+  await knex.schema.createTable(TABLES.PRODUCT_REGIONAL_DATA, (table) => {
+    table.increments('id').primary();
+    table
+      .integer('product_variant_id')
+      .unsigned()
+      .references('id')
+      .inTable(TABLES.PRODUCT_VARIANTS)
+      .onDelete('CASCADE');
+    table
+      .string('country_code')
+      .references('country_code')
+      .inTable(TABLES.COUNTRIES)
+      .onDelete('CASCADE');
+    table
+      .string('currency_code')
+      .references('currency_code')
+      .inTable(TABLES.CURRENCIES)
+      .onDelete('CASCADE');
+    table.decimal('price', 10, 2).notNullable();
+    table.decimal('tax_rate', 5, 2).notNullable();
+    table.decimal('tax_amount', 10, 2).notNullable();
+    table.integer('quantity').notNullable();
+    table.timestamps(true, true);
+  });
+
+  // Create Product Images Table
   await knex.schema.createTable(TABLES.PRODUCT_IMAGES, (table) => {
     table.increments('id').primary();
     table
@@ -122,40 +150,13 @@ export async function up(knex: Knex): Promise<void> {
     table.integer('img_order').nullable();
     table.timestamps(true, true);
   });
-
-  // Create ProductRegionalData Table
-  await knex.schema.createTable(TABLES.PRODUCT_REGIONAL_DATA, (table) => {
-    table.increments('id').primary();
-    table
-      .integer('combination_attributes_id')
-      .unsigned()
-      .references('id')
-      .inTable(TABLES.COMBINATION_ATTRIBUTES)
-      .onDelete('CASCADE');
-    table
-      .string('country_code')
-      .references('country_code')
-      .inTable(TABLES.COUNTRIES)
-      .onDelete('CASCADE');
-    table
-      .integer('currency_id')
-      .unsigned()
-      .references('id')
-      .inTable(TABLES.CURRENCIES)
-      .onDelete('CASCADE');
-    table.decimal('price', 10, 2).notNullable();
-    table.decimal('tax_rate', 5, 2).notNullable();
-    table.decimal('tax_amount', 10, 2).notNullable();
-    table.integer('quantity').notNullable();
-    table.timestamps(true, true);
-  });
 }
 
 export async function down(knex: Knex): Promise<void> {
-  await knex.schema.dropTableIfExists(TABLES.PRODUCT_REGIONAL_DATA);
   await knex.schema.dropTableIfExists(TABLES.PRODUCT_IMAGES);
-  await knex.schema.dropTableIfExists(TABLES.COMBINATION_ATTRIBUTES);
-  await knex.schema.dropTableIfExists(TABLES.COMBINATIONS);
+  await knex.schema.dropTableIfExists(TABLES.PRODUCT_REGIONAL_DATA);
+  await knex.schema.dropTableIfExists(TABLES.PRODUCT_VARIANT_ATTRIBUTES);
+  await knex.schema.dropTableIfExists(TABLES.PRODUCT_VARIANTS);
   await knex.schema.dropTableIfExists(TABLES.ATTRIBUTE_OPTIONS);
   await knex.schema.dropTableIfExists(TABLES.ATTRIBUTES);
   await knex.schema.dropTableIfExists(TABLES.PRODUCTS);

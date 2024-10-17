@@ -13,6 +13,7 @@ import { CategoriesModule } from './core/products-management/features/categories
 import { AttributesModule } from './core/products-management/features/attributes/attributes.module';
 import { CountriesModule } from './core/products-management/features/countries/countries.module';
 import { CurrenciesModule } from './core/products-management/features/currencies/currencies.module';
+import { ProductsModule } from './core/products-management/features/products/products.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { CurrenciesModule } from './core/products-management/features/currencies
     AttributesModule,
     CountriesModule,
     CurrenciesModule,
+    ProductsModule,
   ],
 })
 export class AppModule {}
