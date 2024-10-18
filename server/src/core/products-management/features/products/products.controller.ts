@@ -8,6 +8,7 @@ import {
   NotFoundException,
   Param,
   Put,
+  Delete,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDTO, UpdateProductDTO } from './products.dto';
@@ -61,5 +62,11 @@ export class ProductsController {
   @Put(':id')
   async updateProduct(@Param('id') id: number, @Body() body: UpdateProductDTO) {
     return await this.productsService.updateProduct(id, body);
+  }
+  @Delete()
+  @UseGuards(AuthGuard)
+  @AllowedTo(UserRolesE.ADMIN)
+  async deleteProducts(@Body('ids') ids: number[]) {
+    return await this.productsService.deleteProducts(ids);
   }
 }

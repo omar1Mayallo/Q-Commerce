@@ -13,7 +13,7 @@ export class ProductsService {
 
   async createProduct(data: CreateProductDTO) {
     return await this.knex.transaction(async (trx) => {
-      // Step 1: Insert Product
+      // Step 1: Insert Product with discount fields if provided
       const [product] = await trx(TABLES.PRODUCTS)
         .insert({
           category_id: data.category_id,
@@ -23,6 +23,8 @@ export class ProductsService {
           base_quantity: data.base_quantity,
           base_tax_rate: data.base_tax_rate,
           base_tax_amount: data.base_tax_amount,
+          base_discount_price: data.base_discount_price || null, // Handle optional discount
+          base_discount_percentage: data.base_discount_percentage || null, // Handle optional discount
         })
         .returning('*');
 
@@ -68,6 +70,8 @@ export class ProductsService {
           tax_rate: region.tax_rate,
           tax_amount: region.tax_amount,
           quantity: region.quantity,
+          discount_price: region.discount_price || null, // Handle optional discount
+          discount_percentage: region.discount_percentage || null, // Handle optional discount
         };
       });
 
@@ -130,6 +134,8 @@ export class ProductsService {
         `${TABLES.PRODUCTS}.product_name`,
         `${TABLES.PRODUCTS}.product_description`,
         `${TABLES.PRODUCTS}.base_price`,
+        `${TABLES.PRODUCTS}.base_discount_price`,
+        `${TABLES.PRODUCTS}.base_discount_percentage`,
         `${TABLES.CATEGORIES}.category_name`,
         `${TABLES.CATEGORIES}.category_description`,
       )
@@ -186,23 +192,34 @@ export class ProductsService {
       )
       .where('product_variant_id', variantQuery.id);
 
-    const variants = variantAttributes.map((attr) => ({
-      attribute_id: attr.attribute_id,
-      attribute_name: attr.attribute_name,
-      option_id: attr.option_id,
-      option_name: attr.option_name,
-    }));
+    // Group the variant attributes by attribute name
+    const groupedVariants = variantAttributes.reduce((acc, attr) => {
+      if (!acc[attr.attribute_name]) {
+        acc[attr.attribute_name] = {
+          attribute_id: attr.attribute_id,
+          attribute_name: attr.attribute_name,
+          options: [],
+        };
+      }
+      acc[attr.attribute_name].options.push({
+        option_id: attr.option_id,
+        option_name: attr.option_name,
+      });
+      return acc;
+    }, {});
 
     return {
       product_name: product.product_name,
       product_description: product.product_description,
       base_price: product.base_price,
+      base_discount_price: product.base_discount_price,
+      base_discount_percentage: product.base_discount_percentage,
       category: {
         category_name: product.category_name,
         category_description: product.category_description,
       },
       images,
-      variants,
+      variants: Object.values(groupedVariants), // Return variants grouped by attribute
       regional_data: {
         country_code: countryCode,
         currency_code: currencyCode,
@@ -210,6 +227,8 @@ export class ProductsService {
         tax_rate: regionalData.tax_rate,
         tax_amount: regionalData.tax_amount,
         quantity: regionalData.quantity,
+        discount_price: regionalData.discount_price, // Include discount info
+        discount_percentage: regionalData.discount_percentage, // Include discount info
       },
     };
   }
@@ -272,17 +291,10 @@ export class ProductsService {
         throw new NotFoundException(`Product with id ${id} not found`);
       }
 
-      // Update product core details
-      if (
-        data.category_id ||
-        data.product_name ||
-        data.product_description ||
-        data.base_price ||
-        data.base_quantity ||
-        data.base_tax_rate ||
-        data.base_tax_amount
-      ) {
-        await trx(TABLES.PRODUCTS).where('id', id).update({
+      // Update product core details, including optional discount fields
+      await trx(TABLES.PRODUCTS)
+        .where('id', id)
+        .update({
           category_id: data.category_id,
           product_name: data.product_name,
           product_description: data.product_description,
@@ -290,8 +302,9 @@ export class ProductsService {
           base_quantity: data.base_quantity,
           base_tax_rate: data.base_tax_rate,
           base_tax_amount: data.base_tax_amount,
+          base_discount_price: data.base_discount_price || null, // Handle optional discount
+          base_discount_percentage: data.base_discount_percentage || null, // Handle optional discount
         });
-      }
 
       // Update or add product variants
       if (data.variants) {
@@ -326,21 +339,28 @@ export class ProductsService {
 
       // Update regional data
       if (data.regionalData) {
-        await trx(TABLES.PRODUCT_REGIONAL_DATA).where('product_id', id).del();
+        // Delete existing regional data and insert new ones
+        await trx(TABLES.PRODUCT_REGIONAL_DATA)
+          .where('product_variant_id', id)
+          .del();
+
         const regionalData = data.regionalData.map((region) => ({
-          product_id: id,
+          product_variant_id: id,
           country_code: region.country_code,
           currency_code: region.currency_code,
           price: region.price,
           tax_rate: region.tax_rate,
           tax_amount: region.tax_amount,
           quantity: region.quantity,
+          discount_price: region.discount_price || null, // Handle optional discount
+          discount_percentage: region.discount_percentage || null, // Handle optional discount
         }));
         await trx(TABLES.PRODUCT_REGIONAL_DATA).insert(regionalData);
       }
 
       // Update product images
       if (data.images) {
+        // Delete existing images and insert new ones
         await trx(TABLES.PRODUCT_IMAGES).where('product_id', id).del();
         const imagesData = data.images.map((image) => ({
           product_id: id,
@@ -352,6 +372,29 @@ export class ProductsService {
       }
 
       return { message: 'Product updated successfully' };
+    });
+  }
+
+  async deleteProducts(ids: number[]) {
+    return await this.knex.transaction(async (trx) => {
+      // Fetch products to ensure they exist before deletion
+      const products = await trx(TABLES.PRODUCTS)
+        .whereIn('id', ids)
+        .select('id');
+
+      if (products.length !== ids.length) {
+        throw new NotFoundException(
+          `Some products were not found for the given ids: ${ids.join(', ')}`,
+        );
+      }
+
+      // Perform bulk deletion (ON DELETE CASCADE will handle related data)
+      await trx(TABLES.PRODUCTS).whereIn('id', ids).del();
+
+      return {
+        message: 'Products deleted successfully',
+        deletedCount: products.length,
+      };
     });
   }
 }

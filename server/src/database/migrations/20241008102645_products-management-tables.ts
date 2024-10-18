@@ -47,8 +47,10 @@ export async function up(knex: Knex): Promise<void> {
     table.text('product_description').nullable();
     table.decimal('base_price', 10, 2).notNullable();
     table.integer('base_quantity').notNullable();
-    table.decimal('base_tax_rate', 5, 2).notNullable();
-    table.decimal('base_tax_amount', 10, 2).notNullable();
+    table.decimal('base_tax_rate', 5, 2).nullable();
+    table.decimal('base_tax_amount', 10, 2).nullable();
+    table.decimal('base_discount_price', 10, 2).nullable();
+    table.decimal('base_discount_percentage', 5, 2).nullable();
     table.timestamps(true, true);
   });
 
@@ -133,6 +135,8 @@ export async function up(knex: Knex): Promise<void> {
     table.decimal('tax_rate', 5, 2).notNullable();
     table.decimal('tax_amount', 10, 2).notNullable();
     table.integer('quantity').notNullable();
+    table.decimal('discount_price', 10, 2).nullable();
+    table.decimal('discount_percentage', 5, 2).nullable();
     table.timestamps(true, true);
   });
 

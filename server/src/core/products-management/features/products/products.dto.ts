@@ -27,10 +27,20 @@ export class CreateProductDTO {
   base_quantity: number;
 
   @IsNumber()
-  base_tax_rate: number;
+  @IsOptional()
+  base_tax_rate?: number;
 
   @IsNumber()
-  base_tax_amount: number;
+  @IsOptional()
+  base_tax_amount?: number;
+
+  @IsNumber()
+  @IsOptional()
+  base_discount_price?: number;
+
+  @IsNumber()
+  @IsOptional()
+  base_discount_percentage?: number;
 
   @IsArray()
   @IsOptional()
@@ -93,6 +103,14 @@ export class RegionalDataDTO {
 
   @IsNumber()
   quantity: number;
+
+  @IsNumber()
+  @IsOptional()
+  discount_price?: number;
+
+  @IsNumber()
+  @IsOptional()
+  discount_percentage?: number;
 }
 
 export class ProductImageDTO {
