@@ -15,6 +15,11 @@ export const TABLES = {
   PRODUCT_VARIANTS: 'ProductVariants',
   PRODUCT_IMAGES: 'ProductImages',
   PRODUCT_REGIONAL_DATA: 'ProductRegionalData',
+
+  HELPFUL_REVIEWS: 'HelpfulReviews',
+  RATINGS: 'Ratings',
+  REPLIES: 'Replies',
+  REVIEWS: 'Reviews',
 } as const;
 
 export type TableKeys = ValueOf<typeof TABLES>;

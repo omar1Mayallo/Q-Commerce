@@ -80,6 +80,7 @@
 - Delete Currencies    <<ADMIN  🔒>> ✅
 - Update Currency      <<ADMIN  🔒>> ✅
 - Get All Currencies   <<PUBLIC 👀>> ✅
+
 ---------------------------------------------------------------------------------------------------
 
 [7] Products
@@ -89,3 +90,21 @@
 - Update Products    <<ADMIN  🔒>> ✅
 - Get All Products   <<PUBLIC 👀>> (Not Yet)
 - Get Product        <<PUBLIC 👀>> ✅
+
+---------------------------------------------------------------------------------------------------
+
+[7] Ratings & Reviews
+||_________ User Story _________||
+- Create Rating <<USER  🔒>> 
+- Create Review <<USER  🔒>> 
+- Mark Review as helpful <<USER  🔒>> 
+- Edit Your Review <<USER  🔒>> 
+- Edit your Rating <<USER  🔒>>
+- Delete Your Review <<USER  🔒>>
+- Delete your Rating <<USER  🔒>>
+- Get All Product Reviews (with threaded replies) <<PUBLIC 👀>>
+- Get Product AVG Rating (with specs of how many rates of each star) <<PUBLIC 👀>>
+- Edit any Review <<ADMIN  🔒>>
+- Edit any Reply <<ADMIN  🔒>>
+- Delete any Review <<ADMIN  🔒>>
+- Delete any Replay <<ADMIN  🔒>>
