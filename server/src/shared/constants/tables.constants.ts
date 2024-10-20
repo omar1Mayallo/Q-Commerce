@@ -17,7 +17,6 @@ export const TABLES = {
   PRODUCT_REGIONAL_DATA: 'ProductRegionalData',
 
   HELPFUL_REVIEWS: 'HelpfulReviews',
-  RATINGS: 'Ratings',
   REPLIES: 'Replies',
   REVIEWS: 'Reviews',
 } as const;
