@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -113,5 +114,23 @@ export class RatingsController {
     @LoggedUser() user: UserModel,
   ) {
     return await this.ratingsService.deleteReply(reviewId, replyId, user.id);
+  }
+
+  @Get(':productId/reviews')
+  @UseGuards(AuthGuard)
+  @AllowedTo(UserRolesE.ADMIN)
+  async getProductReviews(
+    @Param('productId') productId: number,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+  ) {
+    return await this.ratingsService.getProductReviews(productId, page, limit);
+  }
+
+  @Get(':reviewId/replies')
+  @UseGuards(AuthGuard)
+  @AllowedTo(UserRolesE.ADMIN)
+  async getReviewReplies(@Param('reviewId') reviewId: number) {
+    return await this.ratingsService.getReviewReplies(reviewId);
   }
 }

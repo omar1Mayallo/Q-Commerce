@@ -169,4 +169,118 @@ export class RatingsService {
       review_id: reviewId,
     });
   }
+
+  async getProductReviews(
+    productId: number,
+    page: number = 1,
+    limit: number = 10,
+  ) {
+    const offset = (page - 1) * limit;
+
+    // Raw SQL query to fetch reviews and count the number of replies for each review
+    const reviews = await this.knex.raw(
+      `
+      SELECT
+        r.id,
+        r.product_id,
+        r.user_id,
+        r.rating,
+        r.review_text,
+        r.helpful_count,
+        r.created_at,
+        COUNT(rep.id) AS reply_count
+      FROM "${TABLES.REVIEWS}" r
+      LEFT JOIN "${TABLES.REPLIES}" rep ON r.id = rep.review_id
+      WHERE r.product_id = ?
+      GROUP BY r.id
+      ORDER BY r.helpful_count DESC, r.created_at DESC
+      LIMIT ? OFFSET ?
+    `,
+      [productId, limit, offset],
+    );
+
+    // Fetch total number of reviews for pagination
+    const totalReviews = await this.knex(TABLES.REVIEWS)
+      .where({ product_id: productId })
+      .count('id as total');
+
+    return {
+      reviews: reviews.rows,
+      pagination: {
+        total: Number(totalReviews[0].total),
+        currentPage: page,
+        perPage: limit,
+        totalPages: Math.ceil(Number(totalReviews[0].total) / limit),
+      },
+    };
+  }
+
+  async getReviewReplies(reviewId: number) {
+    // Raw SQL query to fetch all replies for the review, sorted by latest first
+    const replies = await this.knex.raw(
+      `
+      WITH RECURSIVE reply_tree AS (
+        SELECT
+          rep.id,
+          rep.review_id,
+          rep.parent_reply_id,
+          rep.user_id,
+          rep.reply_text,
+          rep.created_at,
+          1 as level
+        FROM "${TABLES.REPLIES}" rep
+        WHERE rep.review_id = ? AND rep.parent_reply_id IS NULL
+        
+        UNION ALL
+        
+        SELECT
+          rep.id,
+          rep.review_id,
+          rep.parent_reply_id,
+          rep.user_id,
+          rep.reply_text,
+          rep.created_at,
+          rt.level + 1 as level
+        FROM "${TABLES.REPLIES}" rep
+        INNER JOIN reply_tree rt ON rep.parent_reply_id = rt.id
+      )
+      SELECT * FROM reply_tree
+      ORDER BY created_at DESC
+      `,
+      [reviewId],
+    );
+
+    // Convert the flat list of replies into a nested tree structure
+    const replyTree = this.buildReplyTree(replies.rows);
+
+    return replyTree;
+  }
+
+  private buildReplyTree(replies: any[]) {
+    const replyMap = new Map<number, any>();
+
+    // Create a map of all replies by their ID
+    replies.forEach((reply) => {
+      reply.children = []; // Initialize an empty array for child replies
+      replyMap.set(reply.id, reply);
+    });
+
+    // Build the tree by adding child replies to their respective parents
+    const rootReplies = [];
+
+    replies.forEach((reply) => {
+      if (reply.parent_reply_id) {
+        // If the reply has a parent, add it to the parent's children array
+        const parentReply = replyMap.get(reply.parent_reply_id);
+        if (parentReply) {
+          parentReply.children.push(reply);
+        }
+      } else {
+        // If no parent, it's a root reply (top-level reply)
+        rootReplies.push(reply);
+      }
+    });
+
+    return rootReplies; // Return the tree structure of root replies with their nested children
+  }
 }
