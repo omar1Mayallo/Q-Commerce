@@ -30,7 +30,7 @@ export class RatingsController {
 
   @Post(':productId')
   @UseGuards(AuthGuard)
-  @AllowedTo(UserRolesE.ADMIN)
+  @AllowedTo(UserRolesE.USER)
   async createReview(
     @Param('productId') productId: number,
     @Body() body: CreateReviewDTO,
@@ -41,7 +41,7 @@ export class RatingsController {
 
   @Post('helpful/:reviewId')
   @UseGuards(AuthGuard)
-  @AllowedTo(UserRolesE.ADMIN)
+  @AllowedTo(UserRolesE.USER)
   async toggleHelpful(
     @Param('reviewId') reviewId: number,
     @LoggedUser() user: UserModel,
@@ -51,7 +51,7 @@ export class RatingsController {
 
   @Patch(':reviewId')
   @UseGuards(AuthGuard)
-  @AllowedTo(UserRolesE.ADMIN)
+  @AllowedTo(UserRolesE.USER, UserRolesE.ADMIN)
   async editReview(
     @Param('reviewId') reviewId: number,
     @Body() body: UpdateReviewDTO,
@@ -62,7 +62,7 @@ export class RatingsController {
 
   @Delete(':reviewId')
   @UseGuards(AuthGuard)
-  @AllowedTo(UserRolesE.ADMIN)
+  @AllowedTo(UserRolesE.USER, UserRolesE.ADMIN)
   async deleteReview(
     @Param('reviewId') reviewId: number,
     @LoggedUser() user: UserModel,
@@ -71,15 +71,27 @@ export class RatingsController {
   }
 
   @Get(':reviewId')
-  @UseGuards(AuthGuard)
-  @AllowedTo(UserRolesE.ADMIN)
   async getReview(@Param('reviewId') reviewId: number) {
     return await this.ratingsService.getReview(reviewId);
   }
 
+  @Get(':productId/reviews')
+  async getProductReviews(
+    @Param('productId') productId: number,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 5,
+  ) {
+    return await this.ratingsService.getProductReviews(productId, page, limit);
+  }
+
+  @Get(':reviewId/replies')
+  async getReviewReplies(@Param('reviewId') reviewId: number) {
+    return await this.ratingsService.getReviewReplies(reviewId);
+  }
+
   @Post(':reviewId/replies')
   @UseGuards(AuthGuard)
-  @AllowedTo(UserRolesE.ADMIN)
+  @AllowedTo(UserRolesE.USER)
   async createReply(
     @Param('reviewId') reviewId: number,
     @Body() body: CreateReplyDTO,
@@ -90,7 +102,7 @@ export class RatingsController {
 
   @Patch(':reviewId/replies/:replyId')
   @UseGuards(AuthGuard)
-  @AllowedTo(UserRolesE.ADMIN)
+  @AllowedTo(UserRolesE.USER, UserRolesE.ADMIN)
   async editReply(
     @Param('reviewId') reviewId: number,
     @Param('replyId') replyId: number,
@@ -107,30 +119,12 @@ export class RatingsController {
 
   @Delete(':reviewId/replies/:replyId')
   @UseGuards(AuthGuard)
-  @AllowedTo(UserRolesE.ADMIN)
+  @AllowedTo(UserRolesE.USER, UserRolesE.ADMIN)
   async deleteReply(
     @Param('reviewId') reviewId: number,
     @Param('replyId') replyId: number,
     @LoggedUser() user: UserModel,
   ) {
     return await this.ratingsService.deleteReply(reviewId, replyId, user.id);
-  }
-
-  @Get(':productId/reviews')
-  @UseGuards(AuthGuard)
-  @AllowedTo(UserRolesE.ADMIN)
-  async getProductReviews(
-    @Param('productId') productId: number,
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 10,
-  ) {
-    return await this.ratingsService.getProductReviews(productId, page, limit);
-  }
-
-  @Get(':reviewId/replies')
-  @UseGuards(AuthGuard)
-  @AllowedTo(UserRolesE.ADMIN)
-  async getReviewReplies(@Param('reviewId') reviewId: number) {
-    return await this.ratingsService.getReviewReplies(reviewId);
   }
 }

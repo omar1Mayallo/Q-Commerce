@@ -11,6 +11,8 @@ import {
   UpdateReviewDTO,
 } from './ratings.dto';
 import { ReplyModel, ReviewHelpfulModel, ReviewModel } from './ratings.type';
+import { UserModel } from '../users-management/features/user/user.type';
+import { UserRolesE } from '../users-management/common/constants';
 
 @Injectable()
 export class RatingsService {
@@ -21,6 +23,7 @@ export class RatingsService {
     private readonly replyRepoService: RepositoryService<ReplyModel>,
     private readonly productRepoService: RepositoryService<ProductModel>,
     private readonly reviewHelpfulRepoService: RepositoryService<ReviewHelpfulModel>,
+    private readonly userRepoService: RepositoryService<UserModel>,
   ) {}
 
   async createReview(productId: number, body: CreateReviewDTO, userId: number) {
@@ -109,18 +112,46 @@ export class RatingsService {
   }
 
   async editReview(reviewId: number, body: UpdateReviewDTO, userId: number) {
-    return await this.reviewRepoService.updateOne(
-      TABLES.REVIEWS,
-      { id: reviewId, user_id: userId },
-      { ...body, is_edited: true },
-    );
+    // Fetch user details
+    const user = await this.userRepoService.getOne(TABLES.USERS, {
+      id: userId,
+    });
+
+    if (user.role === UserRolesE.ADMIN) {
+      // Admin can edit any review
+      return await this.reviewRepoService.updateOne(
+        TABLES.REVIEWS,
+        { id: reviewId },
+        { ...body, is_edited: true },
+      );
+    } else {
+      // Regular user can only edit their own review
+      return await this.reviewRepoService.updateOne(
+        TABLES.REVIEWS,
+        { id: reviewId, user_id: userId },
+        { ...body, is_edited: true },
+      );
+    }
   }
 
   async deleteReview(reviewId: number, userId: number) {
-    return await this.reviewRepoService.deleteOne(TABLES.REVIEWS, {
-      id: reviewId,
-      user_id: userId,
+    // Fetch user details
+    const user = await this.userRepoService.getOne(TABLES.USERS, {
+      id: userId,
     });
+
+    if (user.role === UserRolesE.ADMIN) {
+      // Admin can delete any review
+      return await this.reviewRepoService.deleteOne(TABLES.REVIEWS, {
+        id: reviewId,
+      });
+    } else {
+      // Regular user can only delete their own review
+      return await this.reviewRepoService.deleteOne(TABLES.REVIEWS, {
+        id: reviewId,
+        user_id: userId,
+      });
+    }
   }
 
   async getReview(reviewId: number) {
@@ -155,19 +186,47 @@ export class RatingsService {
     body: UpdateReplyDTO,
     userId: number,
   ) {
-    return await this.replyRepoService.updateOne(
-      TABLES.REPLIES,
-      { id: replyId, user_id: userId, review_id: reviewId },
-      { reply_text: body.reply_text },
-    );
+    // Fetch user details
+    const user = await this.userRepoService.getOne(TABLES.USERS, {
+      id: userId,
+    });
+
+    if (user.role === UserRolesE.ADMIN) {
+      // Admin can edit any reply
+      return await this.replyRepoService.updateOne(
+        TABLES.REPLIES,
+        { id: replyId },
+        { reply_text: body.reply_text },
+      );
+    } else {
+      // Regular user can only edit their own reply
+      return await this.replyRepoService.updateOne(
+        TABLES.REPLIES,
+        { id: replyId, user_id: userId, review_id: reviewId },
+        { reply_text: body.reply_text },
+      );
+    }
   }
 
   async deleteReply(reviewId: number, replyId: number, userId: number) {
-    return await this.replyRepoService.deleteOne(TABLES.REPLIES, {
-      id: replyId,
-      user_id: userId,
-      review_id: reviewId,
+    // Fetch user details
+    const user = await this.userRepoService.getOne(TABLES.USERS, {
+      id: userId,
     });
+
+    if (user.role === UserRolesE.ADMIN) {
+      // Admin can delete any reply
+      return await this.replyRepoService.deleteOne(TABLES.REPLIES, {
+        id: replyId,
+      });
+    } else {
+      // Regular user can only delete their own reply
+      return await this.replyRepoService.deleteOne(TABLES.REPLIES, {
+        id: replyId,
+        user_id: userId,
+        review_id: reviewId,
+      });
+    }
   }
 
   async getProductReviews(
