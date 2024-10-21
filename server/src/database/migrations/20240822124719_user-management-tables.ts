@@ -1,7 +1,7 @@
 import { Knex } from 'knex';
 import { TABLES } from '../../shared/constants/tables.constants';
 import { UserRolesE } from '../../core/users-management/common/constants';
-import { PhoneType } from 'src/core/users-management/features/phone-number/phone.type';
+import { PhoneType } from '../../core/users-management/features/phone-number/phone.type';
 
 export async function up(knex: Knex): Promise<void> {
   // Create Users Table

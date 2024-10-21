@@ -1,4 +1,4 @@
-import { BaseModel } from 'src/shared/types/base-model.types';
+import { BaseModel } from '../../../../shared/types/base-model.types';
 
 export class AddressModel extends BaseModel {
   street: string;

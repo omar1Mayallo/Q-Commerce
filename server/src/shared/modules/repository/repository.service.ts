@@ -26,9 +26,11 @@ export class RepositoryService<Model> {
    * @param {TableKeys} tableName - The name of the database table.
    * @param {Partial<Model>} conditions - The conditions to filter the record.
    * @param {Object} options - Additional options for the query.
-   * @param {string[]} options.selectOptions - The columns to select in the query.
-   * @param {boolean} options.withNotFoundError - Indicates whether to throw a NotFoundException if the record is not found.
+   * @param {string[]} [options.selectOptions] - The columns to select in the query.
+   * @param {boolean} [options.withNotFoundError=true] - Indicates whether to throw a NotFoundException if the record is not found.
+   * @param {Knex.Transaction} [options.trx] - Optional transaction object.
    * @returns {Promise<Model>} - The retrieved record.
+   * @throws {NotFoundException} - If the record is not found and `withNotFoundError` is true.
    */
   async getOne(
     tableName: TableKeys,
@@ -36,12 +38,13 @@ export class RepositoryService<Model> {
     options: {
       selectOptions?: (keyof Model)[];
       withNotFoundError?: boolean;
+      trx?: Knex.Transaction;
     } = {
       withNotFoundError: true,
     },
   ): Promise<Model> {
     // __________ INIT_QUERY __________ //
-    let query = this.knex<Model>(tableName).where(conditions);
+    let query = (options?.trx || this.knex)<Model>(tableName).where(conditions);
 
     // Apply column selection if specified
     if (options?.selectOptions) {
@@ -65,18 +68,20 @@ export class RepositoryService<Model> {
    * @param {TableKeys} tableName - The name of the database table.
    * @param {CustomReqQuery} reqQuery - The query parameters for filtering, sorting, and pagination.
    * @param {Object} options - Additional options for the query.
-   * @param {boolean} options.withDefaultSort - Indicates whether to apply default sorting (default: true).
-   * @returns {Promise<{ data: any[], paginationDetails: PaginationDetails }>} - The query result along with pagination details.
+   * @param {boolean} [options.withDefaultSort=true] - Indicates whether to apply default sorting (default: true).
+   * @param {Knex.Transaction} [options.trx] - Optional transaction object.
+   * @returns {Promise<{ data: Model[], paginationDetails: PaginationDetails }>} - The query result along with pagination details.
    */
   async getAll(
     tableName: TableKeys,
     reqQuery: CustomReqQuery,
     options: {
       withDefaultSort?: boolean;
+      trx?: Knex.Transaction;
     } = { withDefaultSort: true },
   ): Promise<GetAllResponse<Model>> {
     // __________ INIT_QUERY __________ //
-    const queryBuilder = this.knex<Model>(tableName);
+    const queryBuilder = (options?.trx || this.knex)<Model>(tableName);
 
     // [1] Apply FILTERING, SORTING, FIELDS_SELECTING, PAGINATION and SEARCHING
     this.applyFilters(reqQuery, queryBuilder);
@@ -111,16 +116,20 @@ export class RepositoryService<Model> {
    * @param {TableKeys} tableName - The name of the database table.
    * @param {number[]} ids - The array of IDs to delete.
    * @param {Object} options - Additional options for the delete operation.
-   * @param {boolean} options.softDeleted - Indicates whether to perform a soft delete, setting the 'deleted_at' field to the current date (default: false).
+   * @param {boolean} [options.softDeleted=false] - Indicates whether to perform a soft delete, setting the 'deleted_at' field to the current date.
+   * @param {Knex.Transaction} [options.trx] - Optional transaction object.
    * @throws {NotFoundException} - If any ID does not exist in the database.
    */
   async deleteByIds(
     tableName: TableKeys,
     ids: number[],
-    options: { softDeleted?: boolean } = { softDeleted: false },
+    options: { softDeleted?: boolean; trx?: Knex.Transaction } = {
+      softDeleted: false,
+    },
   ) {
-    // [1] Check if any ID does not exist in the database
-    const existingIds = (await this.knex<Model>(tableName)
+    const query = options?.trx || this.knex;
+
+    const existingIds = (await query<Model>(tableName)
       .select('id')
       .whereIn('id', ids)) as { id: number }[];
 
@@ -134,15 +143,49 @@ export class RepositoryService<Model> {
       );
     }
 
-    // [2] Handle Soft Delete
     if (options.softDeleted) {
-      await this.knex(tableName)
+      await query(tableName)
         .whereIn('id', ids)
         .update('deleted_at', new Date());
+    } else {
+      await query(tableName).whereIn('id', ids).del();
+    }
+  }
+
+  /**
+   * Deletes a single record from the database based on the specified conditions.
+   *
+   * @param {TableKeys} tableName - The name of the database table.
+   * @param {Partial<Model>} conditions - The conditions to filter the record for deletion.
+   * @param {Object} options - Additional options for the delete operation.
+   * @param {boolean} [options.softDeleted=false] - Indicates whether to perform a soft delete, setting the 'deleted_at' field to the current date.
+   * @param {Knex.Transaction} [options.trx] - Optional transaction object.
+   * @throws {NotFoundException} - If the record does not exist in the database.
+   */
+  async deleteOne(
+    tableName: TableKeys,
+    conditions: Partial<Model>,
+    options: { softDeleted?: boolean; trx?: Knex.Transaction } = {
+      softDeleted: false,
+    },
+  ): Promise<void> {
+    const query = options?.trx || this.knex;
+
+    // [1] Check if the record exists
+    const existingRecord = await query<Model>(tableName)
+      .where(conditions)
+      .first();
+    if (!existingRecord) {
+      throw new NotFoundException('This Record Not Found');
+    }
+
+    // [2] Handle Soft Delete
+    if (options.softDeleted) {
+      await query(tableName).where(conditions).update('deleted_at', new Date());
     }
     // [3] Handle Hard Delete
     else {
-      await this.knex(tableName).whereIn('id', ids).del();
+      await query(tableName).where(conditions).del();
     }
   }
 
@@ -152,23 +195,27 @@ export class RepositoryService<Model> {
    * @param {TableKeys} tableName - The name of the database table.
    * @param {Partial<Model>} conditions - The conditions to filter the record.
    * @param {Partial<Model>} updateData - The data to update on the record.
+   * @param {Object} [options] - Additional options for the update operation.
+   * @param {Knex.Transaction} [options.trx] - Optional transaction object.
    * @returns {Promise<Model>} - The updated record.
+   * @throws {NotFoundException} - If the record does not exist in the database.
    */
   async updateOne(
     tableName: TableKeys,
     conditions: Partial<Model>,
     updateData: Partial<Model>,
+    options: { trx?: Knex.Transaction } = {},
   ): Promise<Model> {
-    // [1] Check The Item Exists
-    const query = this.knex<Model>(tableName).where(conditions);
+    const query = options?.trx || this.knex;
+    const existingRecord = await query<Model>(tableName)
+      .where(conditions)
+      .first();
 
-    const existingRecord = await query.first();
     if (!existingRecord) {
       throw new NotFoundException('This Record Not Found');
     }
 
-    // [2] Update And Return Updated Record
-    const updatedRecord = await this.knex(tableName)
+    const updatedRecord = await query(tableName)
       .where(conditions)
       .update(updateData)
       .returning('*');
@@ -181,13 +228,21 @@ export class RepositoryService<Model> {
    *
    * @param {TableKeys} tableName - The name of the database table.
    * @param {Partial<Model>} data - The data to insert into the table.
+   * @param {Object} [options] - Additional options for the insert operation.
+   * @param {Knex.Transaction} [options.trx] - Optional transaction object.
    * @returns {Promise<Model>} - The inserted record.
    */
-  async createOne(tableName: TableKeys, data: Partial<Model>): Promise<Model> {
-    // [1] Insert the data into the table and return the inserted record
-    const [insertedRecord] = await this.knex<Model>(tableName)
+  async createOne(
+    tableName: TableKeys,
+    data: Partial<Model>,
+    options: { trx?: Knex.Transaction } = {},
+  ): Promise<Model> {
+    const query = options?.trx || this.knex;
+
+    const [insertedRecord] = await query<Model>(tableName)
       .insert(data as any)
       .returning('*');
+
     return insertedRecord as Model;
   }
 
@@ -196,16 +251,21 @@ export class RepositoryService<Model> {
    *
    * @param {TableKeys} tableName - The name of the database table.
    * @param {Partial<Model>[]} dataArray - An array of data to insert into the table.
+   * @param {Object} [options] - Additional options for the insert operation.
+   * @param {Knex.Transaction} [options.trx] - Optional transaction object.
    * @returns {Promise<Model[]>} - The inserted records.
    */
   async createMany(
     tableName: TableKeys,
     dataArray: Partial<Model>[],
+    options: { trx?: Knex.Transaction } = {},
   ): Promise<Model[]> {
-    // [1] Insert the data into the table and return the inserted records
-    const insertedRecords = await this.knex<Model>(tableName)
+    const query = options?.trx || this.knex;
+
+    const insertedRecords = await query<Model>(tableName)
       .insert(dataArray as any)
       .returning('*');
+
     return insertedRecords as Model[];
   }
 

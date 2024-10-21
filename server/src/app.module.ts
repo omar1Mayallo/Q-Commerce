@@ -9,6 +9,12 @@ import { UserModule } from './core/users-management/features/user/user.module';
 import { AuthModule } from './core/users-management/features/auth/auth.module';
 import { AddressModule } from './core/users-management/features/address/address.module';
 import { PhoneNumberModule } from './core/users-management/features/phone-number/phone.module';
+import { CategoriesModule } from './core/products-management/features/categories/categories.module';
+import { AttributesModule } from './core/products-management/features/attributes/attributes.module';
+import { CountriesModule } from './core/products-management/features/countries/countries.module';
+import { CurrenciesModule } from './core/products-management/features/currencies/currencies.module';
+import { ProductsModule } from './core/products-management/features/products/products.module';
+import { RatingsModule } from './core/ratings-management/ratings.module';
 
 @Module({
   imports: [
@@ -22,6 +28,12 @@ import { PhoneNumberModule } from './core/users-management/features/phone-number
     AuthModule,
     AddressModule,
     PhoneNumberModule,
+    CategoriesModule,
+    AttributesModule,
+    CountriesModule,
+    CurrenciesModule,
+    ProductsModule,
+    RatingsModule,
   ],
 })
 export class AppModule {}
