@@ -19,6 +19,9 @@ export const TABLES = {
   HELPFUL_REVIEWS: 'HelpfulReviews',
   REPLIES: 'Replies',
   REVIEWS: 'Reviews',
+
+  WISHLIST_ITEMS: 'WishlistItems',
+  WISHLISTS: 'Wishlists',
 } as const;
 
 export type TableKeys = ValueOf<typeof TABLES>;
