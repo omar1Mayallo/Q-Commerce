@@ -153,6 +153,42 @@ export class RepositoryService<Model> {
   }
 
   /**
+   * Deletes multiple records from the database based on the specified conditions.
+   *
+   * @param {TableKeys} tableName - The name of the database table.
+   * @param {Partial<Model>} conditions - The conditions to filter the records to delete.
+   * @param {Object} options - Additional options for the delete operation.
+   * @param {boolean} [options.softDeleted=false] - Indicates whether to perform a soft delete, setting the 'deleted_at' field to the current date.
+   * @param {Knex.Transaction} [options.trx] - Optional transaction object.
+   * @throws {NotFoundException} - If no records are found based on the conditions.
+   * @returns {Promise<void>} - A promise that resolves when the delete operation is complete.
+   */
+  async deleteManyByFields(
+    tableName: TableKeys,
+    conditions: Partial<Model>,
+    options: { softDeleted?: boolean; trx?: Knex.Transaction } = {
+      softDeleted: false,
+    },
+  ): Promise<void> {
+    const query = options?.trx || this.knex;
+
+    // Check if any records exist for the given conditions
+    const existingRecords = await query<Model>(tableName).where(conditions);
+
+    if (!existingRecords.length) {
+      throw new NotFoundException('No records found for the given conditions.');
+    }
+
+    // Perform soft delete if required
+    if (options.softDeleted) {
+      await query(tableName).where(conditions).update('deleted_at', new Date());
+    } else {
+      // Otherwise, perform a hard delete
+      await query(tableName).where(conditions).del();
+    }
+  }
+
+  /**
    * Deletes a single record from the database based on the specified conditions.
    *
    * @param {TableKeys} tableName - The name of the database table.

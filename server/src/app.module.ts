@@ -1,3 +1,4 @@
+import { WishlistModule } from './core/wishlist-management/wishlist.module';
 import { Module } from '@nestjs/common';
 import { ConfigOptions } from './config/env/env.config';
 import { ConfigModule } from '@nestjs/config';
@@ -18,6 +19,7 @@ import { RatingsModule } from './core/ratings-management/ratings.module';
 
 @Module({
   imports: [
+    WishlistModule,
     ConfigModule.forRoot(ConfigOptions),
     I18nCustomModule,
     DatabaseModule,
@@ -34,6 +36,7 @@ import { RatingsModule } from './core/ratings-management/ratings.module';
     CurrenciesModule,
     ProductsModule,
     RatingsModule,
+    WishlistModule,
   ],
 })
 export class AppModule {}
