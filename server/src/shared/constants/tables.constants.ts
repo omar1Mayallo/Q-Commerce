@@ -22,6 +22,9 @@ export const TABLES = {
 
   WISHLIST_ITEMS: 'WishlistItems',
   WISHLISTS: 'Wishlists',
+
+  CARTS: 'Carts',
+  CART_ITEMS: 'CartItems',
 } as const;
 
 export type TableKeys = ValueOf<typeof TABLES>;
