@@ -16,10 +16,10 @@ import { CountriesModule } from './core/products-management/features/countries/c
 import { CurrenciesModule } from './core/products-management/features/currencies/currencies.module';
 import { ProductsModule } from './core/products-management/features/products/products.module';
 import { RatingsModule } from './core/ratings-management/ratings.module';
+import { CartModule } from './core/cart-management/cart.module';
 
 @Module({
   imports: [
-    WishlistModule,
     ConfigModule.forRoot(ConfigOptions),
     I18nCustomModule,
     DatabaseModule,
@@ -37,6 +37,7 @@ import { RatingsModule } from './core/ratings-management/ratings.module';
     ProductsModule,
     RatingsModule,
     WishlistModule,
+    CartModule,
   ],
 })
 export class AppModule {}
